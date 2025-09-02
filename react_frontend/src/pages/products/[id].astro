@@ -1,0 +1,123 @@
+---
+export async function getStaticPaths() {
+  return [];
+}
+import Layout from '../../layouts/Layout.astro';
+const id = Number(Astro.params.id);
+---
+
+<Layout>
+  <section class="card product" id="product-root">
+    <div class="media">
+      <div class="skeleton"></div>
+    </div>
+    <div class="info">
+      <h1>Loading...</h1>
+    </div>
+  </section>
+
+  <script type="module">
+    const id = Number(new URL(location.href).pathname.split('/').pop());
+    const base = (import.meta.env.PUBLIC_API_BASE_URL || '');
+    (async () => {
+      try {
+        const res = await fetch(`${base}/products/${id}`);
+        if (!res.ok) throw new Error('Failed');
+        const product = await res.json();
+        const image = product.image || 'https://via.placeholder.com/800x600?text=Product';
+        document.getElementById('product-root').innerHTML = `
+          <div class="media">
+            <img src="${image}" alt="${product.title}" />
+          </div>
+          <div class="info">
+            <h1>${product.title}</h1>
+            ${product.category ? `<div class="chip">${product.category}</div>` : ''}
+            <div class="price">$${Number(product.price || 0).toFixed(2)}</div>
+            <p class="desc">${product.description || 'No description provided.'}</p>
+            <div class="actions">
+              <button class="button" id="add-btn">Add to Cart</button>
+              <a class="button ghost" href="/products">Back to Products</a>
+            </div>
+          </div>
+        `;
+        document.getElementById('add-btn')?.addEventListener('click', async () => {
+          const token = localStorage.getItem('token');
+          if (!token) return location.assign('/auth/login?next=' + encodeURIComponent(location.pathname));
+          await fetch(base + '/cart', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ productId: id, quantity: 1 }) });
+          alert('Added to cart');
+        });
+      } catch {
+        document.getElementById('product-root').innerHTML = '<p>Product not found.</p>';
+      }
+    })();
+  </script>
+</Layout>
+
+<style>
+.product {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+.media img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+.skeleton { width: 100%; height: 280px; border-radius: 12px; background: #e5e7eb; }
+.info h1 { margin: 0 0 10px; }
+.chip {
+  display: inline-block;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.price {
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--color-secondary);
+}
+.desc { color: var(--text-secondary); }
+.actions { margin-top: 14px; display: flex; gap: 10px; }
+@media (max-width: 860px) {
+  .product { grid-template-columns: 1fr; }
+}
+</style>
+
+<style>
+.product {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+.media img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+.info h1 { margin: 0 0 10px; }
+.chip {
+  display: inline-block;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.price {
+  margin-top: 10px;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--color-secondary);
+}
+.desc { color: var(--text-secondary); }
+.actions { margin-top: 14px; display: flex; gap: 10px; }
+@media (max-width: 860px) {
+  .product { grid-template-columns: 1fr; }
+}
+</style>

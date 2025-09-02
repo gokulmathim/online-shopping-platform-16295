@@ -1,0 +1,20 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="card box">
+    <h2>Logging out...</h2>
+    <p>You will be redirected shortly.</p>
+  </section>
+
+  <script>
+    localStorage.removeItem('token');
+    const next = new URLSearchParams(location.search).get('next') || '/';
+    location.replace(next);
+  </script>
+</Layout>
+
+<style>
+.box { padding: 16px; max-width: 480px; margin-inline: auto; text-align: center; }
+</style>

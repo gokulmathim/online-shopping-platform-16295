@@ -1,0 +1,68 @@
+---
+export async function getStaticPaths() {
+  // No pre-rendered dynamic paths; page renders client-side after build.
+  return [];
+}
+import Layout from '../../layouts/Layout.astro';
+const id = Number(Astro.params.id);
+---
+
+<Layout>
+  <section class="card box" id="order-root">
+    <h2>Order #{id}</h2>
+    <p>Loading order...</p>
+  </section>
+
+  <script type="module">
+    const id = Number(new URL(location.href).pathname.split('/').pop());
+    const token = localStorage.getItem('token');
+    if (!token) {
+      document.getElementById('order-root').innerHTML = '<p>Please <a href="/auth/login?next=' + encodeURIComponent(location.pathname) + '">login</a> to view this order.</p>';
+    } else {
+      const base = (import.meta.env.PUBLIC_API_BASE_URL || '');
+      (async () => {
+        try {
+          const res = await fetch(`${base}/orders/${id}`, { headers: { Authorization: 'Bearer ' + token } });
+          if (!res.ok) throw new Error('Failed');
+          const order = await res.json();
+          const items = (order.items || []).map((it) => `
+            <tr>
+              <td>${it.title || 'Product #' + it.productId}</td>
+              <td>${it.quantity}</td>
+              <td>$${(it.price || 0).toFixed(2)}</td>
+              <td>$${(((it.price || 0) * (it.quantity || 1))).toFixed(2)}</td>
+            </tr>`).join('');
+          document.getElementById('order-root').innerHTML = `
+            <h2>Order #${order.id}</h2>
+            <div class="grid">
+              <div><strong>Status:</strong> ${order.status || 'placed'}</div>
+              <div><strong>Total:</strong> $${(order.total || 0).toFixed(2)}</div>
+              <div><strong>Placed:</strong> ${new Date(order.createdAt || Date.now()).toLocaleString()}</div>
+            </div>
+            <h3 style="margin-top: 16px;">Items</h3>
+            <table class="table">
+              <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Line Total</th></tr></thead>
+              <tbody>${items}</tbody>
+            </table>
+            <div class="actions">
+              <a class="button ghost" href="/orders">Back to Orders</a>
+              <a class="button" href="/products">Shop more</a>
+            </div>`;
+        } catch {
+          document.getElementById('order-root').innerHTML = '<p>Order not found or unauthorized.</p>';
+        }
+      })();
+    }
+  </script>
+</Layout>
+
+<style>
+.box { padding: 16px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border-bottom: 1px solid var(--border-color); padding: 8px; text-align: left; }
+.actions { margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end; }
+@media (max-width: 760px) {
+  .grid { grid-template-columns: 1fr; }
+}
+</style>

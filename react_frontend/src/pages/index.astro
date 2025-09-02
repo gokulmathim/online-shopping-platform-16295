@@ -1,11 +1,71 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+  <section class="hero card">
+    <div class="content">
+      <h1>Discover products you love</h1>
+      <p class="lead">Browse our curated catalog, add items to your cart, and checkout securely.</p>
+      <div class="cta">
+        <a class="button" href="/products">Start Shopping</a>
+        <a class="button ghost" href="/auth/register">Create Account</a>
+      </div>
+    </div>
+    <div class="art" aria-hidden="true"></div>
+  </section>
+
+  <section style="margin-top: 24px;">
+    <h2>Quick Links</h2>
+    <div class="quick">
+      <a class="card tile" href="/products">
+        <span>Browse Products</span>
+      </a>
+      <a class="card tile" href="/cart">
+        <span>View Cart</span>
+      </a>
+      <a class="card tile" href="/orders">
+        <span>Your Orders</span>
+      </a>
+    </div>
+  </section>
 </Layout>
+
+<style>
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  padding: 20px;
+}
+.content h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2.2vw + 1rem, 2.4rem);
+}
+.lead { color: var(--text-secondary); margin: 0 0 14px; }
+.cta { display: flex; gap: 10px; }
+.art {
+  min-height: 220px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--color-primary) 35%, transparent), color-mix(in oklab, var(--color-accent) 35%, transparent));
+}
+.quick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 16px;
+}
+.tile {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  font-weight: 600;
+}
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .quick { grid-template-columns: 1fr; }
+}
+</style>

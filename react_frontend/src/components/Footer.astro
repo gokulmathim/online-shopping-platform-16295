@@ -1,0 +1,38 @@
+<footer class="footer">
+  <div class="container row">
+    <span>© <span id="year"></span> Online Shop</span>
+    <nav class="links">
+      <a href="/products">Products</a>
+      <a href="/orders">Orders</a>
+      <a href="/auth/login">Account</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year')?.replaceWith(String(new Date().getFullYear()));
+</script>
+
+<style>
+.footer {
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+  background: color-mix(in oklab, var(--bg-color) 70%, transparent);
+}
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: .95rem;
+}
+.links {
+  display: flex;
+  gap: 12px;
+}
+.links a:hover {
+  color: var(--text-color);
+}
+</style>

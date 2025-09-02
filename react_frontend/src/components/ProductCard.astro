@@ -1,0 +1,81 @@
+---
+import type { Product } from '../services/products';
+const { product } = Astro.props as { product: Product };
+const image = product.image || 'https://via.placeholder.com/400x300?text=Product';
+---
+
+<article class="card product">
+  <a href={`/products/${product.id}`} class="thumb">
+    <img src={image} alt={product.title} loading="lazy" />
+  </a>
+  <div class="body">
+    <a href={`/products/${product.id}`} class="title">{product.title}</a>
+    <div class="meta">
+      {product.category && <span class="chip">{product.category}</span>}
+      {product.rating && <span class="chip">★ {product.rating}</span>}
+    </div>
+    <div class="row">
+      <span class="price">${product.price?.toFixed(2)}</span>
+      <form action="/cart" method="get" onsubmit="event.preventDefault(); window.addToCart?.({id: Number(this.dataset.id)});" data-id={product.id}>
+        <button type="submit" class="button">Add to Cart</button>
+      </form>
+    </div>
+  </div>
+</article>
+
+<style>
+.product {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.thumb {
+  display: block;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .25s ease;
+}
+.product:hover .thumb img {
+  transform: scale(1.05);
+}
+.body {
+  padding: 12px;
+}
+.title {
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.meta {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-size: .76rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.price {
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+</style>

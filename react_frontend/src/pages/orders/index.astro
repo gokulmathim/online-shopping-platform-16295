@@ -1,0 +1,58 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="card list" id="orders-root">
+    <h2>Your Orders</h2>
+    <p>Loading your orders...</p>
+  </section>
+
+  <script type="module">
+    (async () => {
+      const root = document.getElementById('orders-root');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        root.innerHTML = '<p>Please <a href="/auth/login?next=' + encodeURIComponent(location.pathname) + '">login</a> to view your orders.</p>';
+        return;
+      }
+      try {
+        const base = (import.meta.env.PUBLIC_API_BASE_URL || '');
+        const res = await fetch(base + '/orders', { headers: { Authorization: 'Bearer ' + token } });
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data.items || data.data || []);
+        if (!list.length) {
+          root.innerHTML = '<p>No orders yet. <a class="button ghost" href="/products" style="margin-left: 8px">Shop now</a></p>';
+          return;
+        }
+        const items = list.map((o) => `
+          <li class="row">
+            <div class="meta">
+              <strong>Order #${o.id}</strong>
+              <span class="muted">${new Date(o.createdAt || Date.now()).toLocaleString()}</span>
+            </div>
+            <div class="status">${o.status || 'placed'}</div>
+            <div class="total">$${Number(o.total || 0).toFixed(2)}</div>
+            <a class="button" href="/orders/${o.id}">Details</a>
+          </li>
+        `).join('');
+        root.innerHTML = '<h2>Your Orders</h2><ul>' + items + '</ul>';
+      } catch {
+        root.innerHTML = '<p>Failed to load orders.</p>';
+      }
+    })();
+  </script>
+</Layout>
+
+<style>
+.list { padding: 16px; }
+ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.row { display: grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap: 10px; align-items: center; border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; }
+.muted { color: var(--text-secondary); font-size: .9rem; display: block; }
+.status { text-transform: capitalize; }
+.total { font-weight: 700; color: var(--color-secondary); }
+@media (max-width: 760px) {
+  .row { grid-template-columns: 1fr 1fr; }
+}
+</style>

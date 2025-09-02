@@ -1,0 +1,94 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCart } from '../services/cart';
+
+let cart: any = null;
+try {
+  cart = await getCart();
+} catch {
+  cart = { items: [] };
+}
+---
+
+<Layout>
+  <section class="layout">
+    <div class="left card">
+      <h2>Your Items</h2>
+      {(!cart || cart.items.length === 0) ? (
+        <p>Your cart is empty. <a href="/products" class="button ghost" style="margin-left: 8px">Browse products</a></p>
+      ) : (
+        <table class="table">
+          <thead>
+            <tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody>
+            {cart.items.map((it: any) => (
+              <tr>
+                <td>{it.product?.title || `#${it.productId}`}</td>
+                <td>${(it.product?.price ?? 0).toFixed(2)}</td>
+                <td>
+                  <div class="qty">
+                    <button class="button ghost" onclick={`window.updateQty?.(${it.productId}, ${Math.max(1, (it.quantity||1)-1)})`}>-</button>
+                    <span class="q">{it.quantity}</span>
+                    <button class="button ghost" onclick={`window.updateQty?.(${it.productId}, ${(it.quantity||1)+1})`}>+</button>
+                  </div>
+                </td>
+                <td>${(((it.product?.price ?? 0) * (it.quantity || 1))).toFixed(2)}</td>
+                <td><button class="button" onclick={`window.removeFromCart?.(${it.productId})`}>Remove</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+    <div class="right">
+      <div class="card summary">
+        <h3>Summary</h3>
+        <div class="row">
+          <span>Subtotal</span>
+          <strong>${(cart?.subtotal ?? (cart?.items?.reduce((s: number, it: any) => s + (it.product?.price||0)*(it.quantity||1), 0) || 0)).toFixed(2)}</strong>
+        </div>
+        <div class="actions">
+          <a class="button ghost" href="/products">Continue Shopping</a>
+          <a class="button accent" href="/checkout">Proceed to Checkout</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const base = (import.meta?.env?.PUBLIC_API_BASE_URL || '');
+    const auth = () => localStorage.getItem('token') ? { Authorization: 'Bearer ' + localStorage.getItem('token') } : null;
+
+    window.updateQty = async (productId, quantity) => {
+      if (!auth()) return location.assign('/auth/login?next=' + encodeURIComponent(location.pathname));
+      await fetch(base + '/cart', { method: 'PUT', headers: { 'Content-Type':'application/json', ...auth() }, body: JSON.stringify({ productId, quantity }) });
+      location.reload();
+    };
+    window.removeFromCart = async (productId) => {
+      if (!auth()) return location.assign('/auth/login?next=' + encodeURIComponent(location.pathname));
+      await fetch(base + '/cart/item/' + productId, { method: 'DELETE', headers: { ...auth() } });
+      location.reload();
+    };
+  </script>
+</Layout>
+
+<style>
+.layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+.left { padding: 12px; }
+.right { display: flex; flex-direction: column; gap: 12px; }
+.table { width: 100%; border-collapse: collapse; }
+th, td { border-bottom: 1px solid var(--border-color); padding: 10px; text-align: left; }
+.qty { display: inline-flex; align-items: center; gap: 6px; }
+.q { min-width: 24px; text-align: center; display: inline-block; }
+.summary { padding: 12px; }
+.summary .row { display:flex; justify-content: space-between; margin: 10px 0; }
+.actions { display:flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+</style>

@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductsGrid from '../../components/ProductsGrid.astro';
+import { listProducts } from '../../services/products';
+
+const url = new URL(Astro.request.url);
+const q = url.searchParams.get('q') || '';
+const category = url.searchParams.get('category') || '';
+const minPrice = url.searchParams.get('minPrice');
+const maxPrice = url.searchParams.get('maxPrice');
+
+const query = {
+  q,
+  category,
+  minPrice: minPrice ? Number(minPrice) : undefined,
+  maxPrice: maxPrice ? Number(maxPrice) : undefined,
+  limit: 24,
+};
+
+let data;
+try {
+  data = await listProducts(query);
+} catch (e) {
+  // If PUBLIC_API_BASE_URL is not set during static build, fallback to empty list.
+  data = { items: [], total: 0 };
+}
+---
+
+<Layout>
+  <section class="controls card">
+    <form method="get" class="filters">
+      <input class="input" type="text" name="q" placeholder="Search products..." value={q} />
+      <select name="category">
+        <option value="">All Categories</option>
+        <option value="electronics" selected={category==='electronics'}>Electronics</option>
+        <option value="fashion" selected={category==='fashion'}>Fashion</option>
+        <option value="home" selected={category==='home'}>Home</option>
+      </select>
+      <input class="input" type="number" name="minPrice" step="0.01" placeholder="Min price" value={minPrice || ''} />
+      <input class="input" type="number" name="maxPrice" step="0.01" placeholder="Max price" value={maxPrice || ''} />
+      <button class="button" type="submit">Apply</button>
+      <a class="button ghost" href="/products">Reset</a>
+    </form>
+  </section>
+
+  <section style="margin-top: 16px;">
+    <ProductsGrid items={data.items} />
+  </section>
+
+  <script>
+    // Cart integration helper functions for Add to Cart buttons in ProductCard
+    window.addToCart = async ({id}) => {
+      const token = localStorage.getItem('token');
+      if (!token) return window.location.assign('/auth/login?next=' + encodeURIComponent(location.pathname + location.search));
+      try {
+        await fetch((import.meta?.env?.PUBLIC_API_BASE_URL || '') + '/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ productId: Number(id), quantity: 1 })
+        });
+        alert('Added to cart');
+      } catch (e) {
+        alert('Failed to add to cart');
+      }
+    };
+  </script>
+</Layout>
+
+<style>
+.controls { padding: 12px; }
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .filters { grid-template-columns: 1fr 1fr; }
+}
+</style>

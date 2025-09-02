@@ -1,0 +1,44 @@
+---
+const { cart } = Astro.props as { cart: any };
+---
+
+<div class="card panel">
+  <h3>Cart</h3>
+  {(!cart || !cart.items || cart.items.length === 0) ? (
+    <p>Your cart is empty.</p>
+  ) : (
+    <ul class="list">
+      {cart.items.map((it: any) => (
+        <li class="item">
+          <div class="info">
+            <div class="name">{it.product?.title || `Product #${it.productId}`}</div>
+            <div class="muted">${(it.product?.price ?? 0).toFixed(2)}</div>
+          </div>
+          <div class="qty">
+            <button class="button ghost" onclick={`window.updateQty?.(${it.productId}, ${Math.max(1, (it.quantity||1)-1)})`}>-</button>
+            <span class="q">{it.quantity}</span>
+            <button class="button ghost" onclick={`window.updateQty?.(${it.productId}, ${(it.quantity||1)+1})`}>+</button>
+            <button class="button" style="margin-left:8px" onclick={`window.removeFromCart?.(${it.productId})`}>Remove</button>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+  <div class="actions">
+    <a class="button ghost" href="/products">Continue Shopping</a>
+    <a class="button accent" href="/checkout">Checkout</a>
+  </div>
+</div>
+
+<style>
+.panel { padding: 16px; }
+h3 { margin: 0 0 12px; }
+.list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.item { display: flex; align-items: center; justify-content: space-between; }
+.info { min-width: 0; }
+.name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-inline-size: 50vw; }
+.muted { color: var(--text-secondary); font-size: .9rem; }
+.qty { display: flex; align-items: center; gap: 6px; }
+.q { display: inline-block; min-width: 28px; text-align: center; }
+.actions { display:flex; gap: 10px; margin-top: 14px; justify-content: flex-end; }
+</style>

@@ -1,0 +1,44 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="card box">
+    <h2>Create Account</h2>
+    <form class="form" onsubmit="event.preventDefault(); register(this)">
+      <input class="input" name="name" placeholder="Full name" />
+      <input class="input" name="email" type="email" placeholder="Email" required />
+      <input class="input" name="password" type="password" placeholder="Password" required />
+      <button class="button" type="submit">Register</button>
+      <p class="hint">Already have an account? <a href="/auth/login">Login</a></p>
+    </form>
+  </section>
+
+  <script type="module">
+    async function register(form) {
+      const name = form.name.value;
+      const email = form.email.value;
+      const password = form.password.value;
+      try {
+        const res = await fetch((import.meta.env.PUBLIC_API_BASE_URL || '') + '/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        if (!res.ok) throw new Error('Registration failed');
+        const data = await res.json().catch(()=>({}));
+        if (data?.token) localStorage.setItem('token', data.token);
+        location.assign('/products');
+      } catch (e) {
+        alert('Registration failed');
+      }
+    }
+    window.register = register;
+  </script>
+</Layout>
+
+<style>
+.box { padding: 16px; max-width: 480px; margin-inline: auto; }
+.form { display: grid; gap: 10px; }
+.hint { color: var(--text-secondary); }
+</style>

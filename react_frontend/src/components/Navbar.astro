@@ -1,0 +1,69 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+const currentPath = Astro.url.pathname;
+const navItemClass = (href: string) => currentPath === href ? 'active' : '';
+---
+
+<header class="navbar">
+  <div class="container inner">
+    <a class="brand" href="/">Shop</a>
+
+    <nav class="links">
+      <a class={navItemClass('/')} href="/">Home</a>
+      <a class={navItemClass('/products')} href="/products">Products</a>
+      <a class={navItemClass('/orders')} href="/orders">Orders</a>
+    </nav>
+
+    <div class="actions">
+      <a class="button ghost" href="/auth/login">Login</a>
+      <a class="button" href="/cart">Cart</a>
+    </div>
+  </div>
+  <ThemeToggle />
+</header>
+
+<style>
+.navbar {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(16px);
+  background: color-mix(in oklab, var(--bg-color) 70%, transparent);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 50;
+}
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 10px;
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+.links {
+  display: flex;
+  gap: 14px;
+  margin-left: 12px;
+}
+.links a {
+  padding: 8px 6px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+.links a.active, .links a:hover {
+  color: var(--text-color);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  .links {
+    display: none;
+  }
+}
+</style>

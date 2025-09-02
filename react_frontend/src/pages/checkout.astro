@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <section class="card box">
+    <h2>Checkout</h2>
+    <p>Confirm your purchase and place the order.</p>
+    <form class="checkout" onsubmit="event.preventDefault(); window.checkout?.();">
+      <div class="row">
+        <label>Name</label>
+        <input class="input" name="name" placeholder="Full name" required />
+      </div>
+      <div class="row">
+        <label>Address</label>
+        <input class="input" name="address" placeholder="Shipping address" required />
+      </div>
+      <div class="row">
+        <label>Payment</label>
+        <input class="input" name="card" placeholder="Card **** **** **** 1234" required />
+      </div>
+      <div class="actions">
+        <a class="button ghost" href="/cart">Back to Cart</a>
+        <button class="button accent" type="submit">Place Order</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    window.checkout = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return location.assign('/auth/login?next=' + encodeURIComponent(location.pathname));
+      const base = (import.meta?.env?.PUBLIC_API_BASE_URL || '');
+      const res = await fetch(base + '/orders/checkout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+      if (res.ok) {
+        const data = await res.json().catch(()=>({}));
+        const id = data?.orderId || data?.id;
+        if (id) return location.assign('/orders/' + id);
+        return location.assign('/orders');
+      } else {
+        alert('Checkout failed');
+      }
+    };
+  </script>
+</Layout>
+
+<style>
+.box { padding: 16px; max-width: 720px; margin-inline: auto; }
+.checkout { display: grid; gap: 12px; margin-top: 10px; }
+.row { display: grid; gap: 6px; }
+.actions { display:flex; gap: 10px; justify-content: flex-end; }
+</style>
